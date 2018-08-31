@@ -9,7 +9,7 @@
 	<packaging>jar</packaging>
 
 	<name>chaos-emerald-service</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Demo project for Spring Boot and Chaos Monkey</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
