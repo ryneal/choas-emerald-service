@@ -30,12 +30,14 @@ public class EmeraldServiceImpl implements EmeraldService {
     }
 
     @Override
-    public Emerald updateEmerald(Emerald emerald) throws EmeraldException {
-        Emerald existingEmerald = getEmerald(emerald.getId());
+    public Emerald updateEmerald(Long id, Emerald emerald) throws EmeraldException {
+        Emerald existingEmerald = getEmerald(id);
         if (existingEmerald.equals(emerald)) {
             throw new EmeraldNotUpdatedException();
         }
-        return Optional.ofNullable(this.emeraldRepository.save(emerald))
+        existingEmerald.setPowerLevel(emerald.getPowerLevel());
+        existingEmerald.setColour(emerald.getColour());
+        return Optional.ofNullable(this.emeraldRepository.save(existingEmerald))
                 .orElseThrow(EmeraldUpdateFailedException::new);
     }
 

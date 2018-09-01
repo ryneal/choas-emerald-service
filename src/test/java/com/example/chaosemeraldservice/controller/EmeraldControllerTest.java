@@ -2,10 +2,10 @@ package com.example.chaosemeraldservice.controller;
 
 import com.example.chaosemeraldservice.exception.EmeraldCreationFailedException;
 import com.example.chaosemeraldservice.exception.EmeraldException;
-import com.example.chaosemeraldservice.exception.EmeraldNotUpdatedException;
 import com.example.chaosemeraldservice.exception.EmeraldUpdateFailedException;
 import com.example.chaosemeraldservice.model.Colour;
 import com.example.chaosemeraldservice.model.Emerald;
+import com.example.chaosemeraldservice.model.EmeraldDto;
 import com.example.chaosemeraldservice.service.EmeraldService;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class EmeraldControllerTest {
@@ -33,12 +33,13 @@ public class EmeraldControllerTest {
 
     @Test
     public void shouldGetEmeraldWithSuccess() throws Exception {
-        Emerald actual = mock(Emerald.class);
+        Emerald actual = new Emerald(77L, Colour.BLUE);
         when(this.emeraldService.getEmerald(1L)).thenReturn(actual);
 
         ResponseEntity<Emerald> result = this.emeraldController.getEmerald(1L);
 
-        assertThat(actual, is(result.getBody()));
+        assertNotNull(result.getBody());
+        assertEquals(result.getBody(), actual);
         assertThat(HttpStatus.OK, is(result.getStatusCode()));
         verify(this.emeraldService).getEmerald(1L);
         verifyZeroInteractions(this.emeraldService);
@@ -58,13 +59,29 @@ public class EmeraldControllerTest {
     }
 
     @Test
-    public void shouldGetAllEmeraldsWithSuccess() throws Exception {
+    public void shouldGetEmptyEmeraldsListWithSuccess() throws Exception {
         List<Emerald> emeraldList = Collections.emptyList();
         when(this.emeraldService.getEmeralds()).thenReturn(emeraldList);
 
         ResponseEntity<List<Emerald>> allEmeraldsResponse = this.emeraldController.getAllEmeralds();
 
-        assertThat(emeraldList, is(allEmeraldsResponse.getBody()));
+        assertNotNull(allEmeraldsResponse.getBody());
+        assertTrue(allEmeraldsResponse.getBody().isEmpty());
+        assertThat(HttpStatus.OK, is(allEmeraldsResponse.getStatusCode()));
+        verify(this.emeraldService).getEmeralds();
+        verifyNoMoreInteractions(this.emeraldService);
+    }
+
+    @Test
+    public void shouldGetEmeraldsListWithSuccess() throws Exception {
+        List<Emerald> emeraldList = Collections.singletonList(new Emerald(800L, Colour.GREEN));
+        when(this.emeraldService.getEmeralds()).thenReturn(emeraldList);
+
+        ResponseEntity<List<Emerald>> allEmeraldsResponse = this.emeraldController.getAllEmeralds();
+
+        List<Emerald> responseBody = allEmeraldsResponse.getBody();
+        assertNotNull(responseBody);
+        assertThat(1, is(responseBody.size()));
         assertThat(HttpStatus.OK, is(allEmeraldsResponse.getStatusCode()));
         verify(this.emeraldService).getEmeralds();
         verifyNoMoreInteractions(this.emeraldService);
@@ -85,9 +102,8 @@ public class EmeraldControllerTest {
 
     @Test
     public void shouldCreateEmeraldWithSuccess() throws Exception {
-        Emerald requestEmerald = new Emerald(7L, Colour.YELLOW);
-        Emerald createdEmerald = spy(requestEmerald);
-        when(createdEmerald.getId()).thenReturn(9L);
+        EmeraldDto requestEmerald = new EmeraldDto(7L, Colour.YELLOW);
+        Emerald createdEmerald = mock(Emerald.class);
         when(this.emeraldService.createEmerald(7L, Colour.YELLOW)).thenReturn(createdEmerald);
 
         ResponseEntity<Emerald> emeraldResponse = this.emeraldController.postEmerald(requestEmerald);
@@ -100,7 +116,7 @@ public class EmeraldControllerTest {
 
     @Test(expected = EmeraldCreationFailedException.class)
     public void shouldNotCreateEmeraldWithException() throws Exception {
-        Emerald requestEmerald = new Emerald(7L, Colour.YELLOW);
+        EmeraldDto requestEmerald = new EmeraldDto(7L, Colour.YELLOW);
         when(this.emeraldService.createEmerald(7L, Colour.YELLOW)).thenReturn(null);
 
         try {
@@ -114,41 +130,29 @@ public class EmeraldControllerTest {
 
     @Test
     public void shouldUpdateEmeraldWithSuccess() throws Exception {
-        Emerald requestEmerald = spy(new Emerald(99L, Colour.RED));
-        when(requestEmerald.getId()).thenReturn(99L);
-        when(this.emeraldService.updateEmerald(requestEmerald)).thenReturn(requestEmerald);
+        EmeraldDto requestEmerald = spy(new EmeraldDto(99L, Colour.RED));
+        Emerald responseEmerald = new Emerald(100L, Colour.GREEN);
+        when(this.emeraldService.updateEmerald(any(), any())).thenReturn(responseEmerald);
 
-        ResponseEntity<Emerald> emeraldResponse = this.emeraldController.putEmerald(99L, requestEmerald);
+        ResponseEntity<Emerald> emeraldResponse = this.emeraldController.putEmerald(16L, requestEmerald);
+        Emerald responseBody = emeraldResponse.getBody();
 
         assertThat(HttpStatus.CREATED, is(emeraldResponse.getStatusCode()));
-        assertThat(requestEmerald, is(emeraldResponse.getBody()));
-        verify(this.emeraldService).updateEmerald(requestEmerald);
+        assertNotNull(responseBody);
+        assertThat(responseEmerald, is(responseBody));
+        verify(this.emeraldService).updateEmerald(any(), any());
         verifyNoMoreInteractions(this.emeraldService);
     }
 
     @Test(expected = EmeraldUpdateFailedException.class)
     public void shouldNotUpdateEmeraldWithException() throws Exception {
-        Emerald requestEmerald = spy(new Emerald(99L, Colour.RED));
-        when(requestEmerald.getId()).thenReturn(99L);
-        when(this.emeraldService.updateEmerald(requestEmerald)).thenReturn(null);
+        EmeraldDto requestEmerald = spy(new EmeraldDto(99L, Colour.RED));
+        when(this.emeraldService.updateEmerald(any(), any())).thenReturn(null);
 
         try {
             this.emeraldController.putEmerald(99L, requestEmerald);
         } catch (Exception e) {
-            verify(this.emeraldService).updateEmerald(requestEmerald);
-            verifyNoMoreInteractions(this.emeraldService);
-            throw e;
-        }
-    }
-
-    @Test(expected = EmeraldNotUpdatedException.class)
-    public void shouldNotUpdateEmeraldWithIdConflict() throws Exception {
-        Emerald requestEmerald = spy(new Emerald(99L, Colour.RED));
-        when(requestEmerald.getId()).thenReturn(9L);
-
-        try {
-            this.emeraldController.putEmerald(99L, requestEmerald);
-        } catch (Exception e) {
+            verify(this.emeraldService).updateEmerald(any(), any());
             verifyNoMoreInteractions(this.emeraldService);
             throw e;
         }

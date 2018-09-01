@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class EmeraldServiceImplTest {
@@ -83,15 +83,16 @@ public class EmeraldServiceImplTest {
 
     @Test
     public void shouldUpdateEmeraldWhenEmeraldExistsAndNewValuesProvided() throws Exception {
-        Emerald requestEmerald = spy(new Emerald(100L, Colour.BLUE));
+        Emerald requestEmerald = new Emerald(100L, Colour.BLUE);
         Emerald existingEmerald = new Emerald(200L, Colour.GREEN);
-        when(requestEmerald.getId()).thenReturn(1L);
         when(this.emeraldRepository.findById(1L)).thenReturn(Optional.of(existingEmerald));
         when(this.emeraldRepository.save(requestEmerald)).thenReturn(requestEmerald);
 
-        Emerald result = this.emeraldService.updateEmerald(requestEmerald);
+        Emerald result = this.emeraldService.updateEmerald(1L, requestEmerald);
 
         assertThat(requestEmerald, is(result));
+        assertNotNull(result);
+        assertEquals(requestEmerald, result);
         verify(this.emeraldRepository).findById(1L);
         verify(this.emeraldRepository).save(requestEmerald);
         verifyNoMoreInteractions(this.emeraldRepository);
@@ -99,9 +100,9 @@ public class EmeraldServiceImplTest {
 
     @Test(expected = EmeraldNotUpdatedException.class)
     public void shouldNotUpdateEmeraldWithExceptionWhenEmeraldExistsAndValuesMatch() throws Exception {
-        Emerald requestEmerald = spy(new Emerald(100L, Colour.BLUE));
-        when(requestEmerald.getId()).thenReturn(1L);
-        when(this.emeraldRepository.findById(1L)).thenReturn(Optional.of(requestEmerald));
+        Emerald requestEmerald = new Emerald(100L, Colour.BLUE);
+        Emerald existingEmerald = new Emerald(100L, Colour.BLUE);
+        when(this.emeraldRepository.findById(9L)).thenReturn(Optional.of(existingEmerald));
 
         assertUpdateEmeraldWithException(requestEmerald);
     }
@@ -109,7 +110,6 @@ public class EmeraldServiceImplTest {
     @Test(expected = EmeraldNotFoundException.class)
     public void shouldNotUpdateEmeraldWithExceptionWhenEmeraldDoesNotExist() throws Exception {
         Emerald requestEmerald = spy(new Emerald(100L, Colour.BLUE));
-        when(requestEmerald.getId()).thenReturn(1L);
         when(this.emeraldRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertUpdateEmeraldWithException(requestEmerald);
@@ -119,15 +119,14 @@ public class EmeraldServiceImplTest {
     public void shouldThrowExceptionWhenEmeraldDoesNotSave() throws Exception {
         Emerald requestEmerald = spy(new Emerald(100L, Colour.BLUE));
         Emerald existingEmerald = new Emerald(200L, Colour.GREEN);
-        when(requestEmerald.getId()).thenReturn(1L);
         when(this.emeraldRepository.findById(1L)).thenReturn(Optional.of(existingEmerald));
         when(this.emeraldRepository.save(requestEmerald)).thenReturn(null);
 
         try {
-            this.emeraldService.updateEmerald(requestEmerald);
+            this.emeraldService.updateEmerald(1L, requestEmerald);
         } catch (Exception e) {
-            verify(this.emeraldRepository).findById(requestEmerald.getId());
-            verify(this.emeraldRepository).save(requestEmerald);
+            verify(this.emeraldRepository).findById(1L);
+            verify(this.emeraldRepository).save(existingEmerald);
             verifyNoMoreInteractions(this.emeraldRepository);
             throw e;
         }
@@ -172,7 +171,6 @@ public class EmeraldServiceImplTest {
     @Test(expected = EmeraldDeletionFailedException.class)
     public void shouldThrowExceptionIfUnableToDeleteEmerald() throws Exception {
         Emerald actual = spy(new Emerald(100L, Colour.BLUE));
-        when(actual.getId()).thenReturn(4L);
         when(this.emeraldRepository.findById(4L)).thenReturn(Optional.of(actual));
 
         this.emeraldService.deleteEmerald(4L);
@@ -194,9 +192,9 @@ public class EmeraldServiceImplTest {
 
     private void assertUpdateEmeraldWithException(Emerald emerald) throws Exception {
         try {
-            this.emeraldService.updateEmerald(emerald);
+            this.emeraldService.updateEmerald(9L, emerald);
         } catch (Exception e) {
-            verify(this.emeraldRepository).findById(emerald.getId());
+            verify(this.emeraldRepository).findById(9L);
             verifyNoMoreInteractions(this.emeraldRepository);
             throw e;
         }

@@ -12,7 +12,7 @@ public interface EmeraldService {
 
     List<Emerald> getEmeralds() throws EmeraldException;
 
-    Emerald updateEmerald(Emerald emerald) throws EmeraldException;
+    Emerald updateEmerald(Long id, Emerald emerald) throws EmeraldException;
 
     Emerald createEmerald(Long powerLevel, Colour colour) throws EmeraldException;
 
