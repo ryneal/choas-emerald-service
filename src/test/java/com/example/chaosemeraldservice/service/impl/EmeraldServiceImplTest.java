@@ -1,9 +1,6 @@
 package com.example.chaosemeraldservice.service.impl;
 
-import com.example.chaosemeraldservice.exception.EmeraldCreationFailedException;
-import com.example.chaosemeraldservice.exception.EmeraldDeletionFailedException;
-import com.example.chaosemeraldservice.exception.EmeraldNotFoundException;
-import com.example.chaosemeraldservice.exception.EmeraldNotUpdatedException;
+import com.example.chaosemeraldservice.exception.*;
 import com.example.chaosemeraldservice.model.Colour;
 import com.example.chaosemeraldservice.model.Emerald;
 import com.example.chaosemeraldservice.persistence.EmeraldRepository;
@@ -118,7 +115,7 @@ public class EmeraldServiceImplTest {
         assertUpdateEmeraldWithException(requestEmerald);
     }
 
-    @Test(expected = EmeraldNotUpdatedException.class)
+    @Test(expected = EmeraldUpdateFailedException.class)
     public void shouldThrowExceptionWhenEmeraldDoesNotSave() throws Exception {
         Emerald requestEmerald = spy(new Emerald(100L, Colour.BLUE));
         Emerald existingEmerald = new Emerald(200L, Colour.GREEN);

@@ -36,7 +36,7 @@ public class EmeraldServiceImpl implements EmeraldService {
             throw new EmeraldNotUpdatedException();
         }
         return Optional.ofNullable(this.emeraldRepository.save(emerald))
-                .orElseThrow(EmeraldNotUpdatedException::new);
+                .orElseThrow(EmeraldUpdateFailedException::new);
     }
 
     @Override
